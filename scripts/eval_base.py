@@ -33,7 +33,7 @@ def extract_boxed(text):
     matches = re.findall(r"\\boxed\{([^{}]+)\}", text)
     if not matches:
         return None
-    return matches[-1].strip()
+    return matches[0].strip()
 
 
 def normalize_answer(x):
