@@ -1,6 +1,7 @@
 import re
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import StoppingCriteria, StoppingCriteriaList
 
 MODEL_ID = "Qwen/Qwen3-1.7B"
 
@@ -28,7 +29,16 @@ Solve briefly.
 Your last line must contain the final answer using LaTeX boxed notation.
 Do not write any boxed expression until the last line."""
 
+class StopAfterBoxed(StoppingCriteria):
+    def __init__(self, tokenizer, prompt_len):
+        self.tokenizer = tokenizer
+        self.prompt_len = prompt_len
+        self.pattern = re.compile(r"\\boxed\{[^{}]+\}")
 
+    def __call__(self, input_ids, scores, **kwargs):
+        generated_ids = input_ids[0][self.prompt_len:]
+        text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+        return self.pattern.search(text) is not None
 def extract_boxed(text):
     matches = re.findall(r"\\boxed\{([^{}]+)\}", text)
     if not matches:
@@ -57,6 +67,7 @@ def main():
     for idx, item in enumerate(QUESTIONS, start=1):
         prompt = PROMPT_TEMPLATE.format(problem=item["problem"])
         inputs = tok(prompt, return_tensors="pt").to(model.device)
+        prompt_len = inputs["input_ids"].shape[1]
 
         with torch.no_grad():
             out = model.generate(
@@ -64,8 +75,10 @@ def main():
                 max_new_tokens=512,
                 do_sample=False,
                 eos_token_id=tok.eos_token_id,
-            )
-
+		pad_token_id=tok.eos_token_id,
+                stopping_criteria=StoppingCriteriaList([
+                StopAfterBoxed(tok, prompt_len)]),
+)
         generated_ids = out[0][inputs["input_ids"].shape[1]:]
         text = tok.decode(generated_ids, skip_special_tokens=True)
         pred = extract_boxed(text)
