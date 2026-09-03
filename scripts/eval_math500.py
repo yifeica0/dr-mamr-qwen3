@@ -1,7 +1,9 @@
 import argparse
 import re
-
+import sympy as sp
 import torch
+import html
+
 from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
@@ -59,10 +61,52 @@ def extract_number(text):
         return None
     return matches[-1]
 
+def latex_to_sympy_expr(x):
+    if x is None:
+        return None
+
+    x = normalize_answer(x)
+
+    replacements = {
+        r"\pi": "pi",
+        r"\sqrt": "sqrt",
+    }
+
+    for old, new in replacements.items():
+        x = x.replace(old, new)
+
+    x = re.sub(r"\\frac\{([^{}]+)\}\{([^{}]+)\}", r"(\1)/(\2)", x)
+    x = x.replace("^", "**")
+
+    try:
+        return sp.sympify(x)
+    except Exception:
+        return None
+
+
+def numeric_equal(pred, gold, tolerance=1e-3):
+    pred_expr = latex_to_sympy_expr(pred)
+    gold_expr = latex_to_sympy_expr(gold)
+
+    if pred_expr is None or gold_expr is None:
+        return False
+
+    try:
+        diff = abs(float(sp.N(pred_expr)) - float(sp.N(gold_expr)))
+        return diff <= tolerance
+    except Exception:
+        return False
+
 def normalize_answer(x):
     if x is None:
         return None
-    x = str(x).strip()
+
+    x = html.unescape(str(x).strip())
+
+    x = re.sub(r"\\text\{([^{}]+)\}", r"\1", x)
+    x = re.sub(r"\\mathrm\{([^{}]+)\}", r"\1", x)
+    x = re.sub(r"\\operatorname\{([^{}]+)\}", r"\1", x)
+
     replacements = {
         r"\left": "",
         r"\right": "",
@@ -71,15 +115,15 @@ def normalize_answer(x):
         r"\ ": "",
         "$": "",
     }
+
     for old, new in replacements.items():
         x = x.replace(old, new)
+
     x = x.replace(" ", "")
     x = x.replace("\n", "")
     x = x.replace("\t", "")
-    return x
 
-print(normalize_answer(r"\left( 3, \frac{\pi}{2} \right)"))
-print(normalize_answer(r"(3, \frac{\pi}{2})"))
+    return x
 
 def build_prompt(tokenizer, problem):
     messages = [
@@ -87,15 +131,23 @@ def build_prompt(tokenizer, problem):
             "role": "system",
             "content": (
                 "You are a careful math solver. "
-                "Solve the problem briefly and correctly. "
-                "Your final answer must be written exactly once using LaTeX boxed notation."
+                "Solve the problem accurately and concisely. "
+                "Before giving the final answer, identify what the problem is asking for. "
+                "Your final boxed answer must directly answer what the problem asks for. "
+                "If the problem asks for a person, place, option, label, or text, put that text in the box. "
+                "If the problem asks for a number, expression, coordinate, interval, set, or equation, put that object in the box. "
+                "Do not put an intermediate value in the final box."
             ),
         },
         {
             "role": "user",
             "content": (
-                f"Problem:\n{problem}\n\n"
-                "Solve step by step, then end with one line containing only the final answer in \\boxed{}."
+                f"Solve the following math problem efficiently and clearly.\n\n"
+                f"{problem}\n\n"
+                "Think step by step before answering. "
+                "Your last line must be exactly:\n"
+                "Therefore, the final answer is: $\\boxed{ANSWER}$.\n"
+                "Replace ANSWER with only the requested final answer."
             ),
         },
     ]
@@ -110,12 +162,15 @@ def build_prompt(tokenizer, problem):
 
     return (
         "System: You are a careful math solver. "
-        "Your final answer must be written exactly once using LaTeX boxed notation.\n"
-        f"User: Problem:\n{problem}\n\n"
-        "Solve step by step, then end with one line containing only the final answer in \\boxed{}.\n"
+        "Your final boxed answer must directly answer what the problem asks for. "
+        "Do not put an intermediate value in the final box.\n"
+        f"User: Solve the following math problem efficiently and clearly.\n\n{problem}\n\n"
+        "Think step by step before answering. "
+        "Your last line must be exactly:\n"
+        "Therefore, the final answer is: $\\boxed{ANSWER}$.\n"
+        "Replace ANSWER with only the requested final answer.\n"
         "Assistant:"
     )
-
 
 def get_problem(item):
     for key in ["problem", "question"]:
@@ -138,11 +193,30 @@ def get_gold(item):
 
     raise KeyError(f"Cannot find answer field. Available keys: {list(item.keys())}")
 
+def strip_degree_for_compare(x):
+    if x is None:
+        return None
+
+    x = normalize_answer(x)
+    x = x.replace(r"^\circ", "")
+    x = x.replace(r"^{\circ}", "")
+    x = x.replace(r"\degree", "")
+    x = x.replace(r"^\degree", "")
+
+    return x
+
+
 def is_correct(pred, gold):
     pred_norm = normalize_answer(pred)
     gold_norm = normalize_answer(gold)
 
     if pred_norm == gold_norm:
+        return True
+
+    pred_degree_stripped = strip_degree_for_compare(pred)
+    gold_degree_stripped = strip_degree_for_compare(gold)
+
+    if pred_degree_stripped == gold_degree_stripped:
         return True
 
     return False
@@ -153,7 +227,7 @@ def main():
     parser.add_argument("--dataset", default="HuggingFaceH4/MATH-500")
     parser.add_argument("--split", default="test")
     parser.add_argument("--limit", type=int, default=20)
-    parser.add_argument("--max-new-tokens", type=int, default=1024)
+    parser.add_argument("--max-new-tokens", type=int, default=2048)
     parser.add_argument("--temperature", type=float, default=0.0)
     args = parser.parse_args()
 
