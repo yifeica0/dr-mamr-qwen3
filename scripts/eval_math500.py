@@ -22,13 +22,33 @@ class StopAfterBoxed(StoppingCriteria):
         text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return self.pattern.search(text) is not None
 
-
 def extract_boxed(text):
-    matches = re.findall(r"\\boxed\{([^{}]+)\}", text)
-    if not matches:
+    marker = r"\boxed{"
+    start = text.find(marker)
+    if start == -1:
         return None
-    return matches[0].strip()
 
+    i = start + len(marker)
+    depth = 1
+    chars = []
+
+    while i < len(text):
+        ch = text[i]
+
+        if ch == "{":
+            depth += 1
+            chars.append(ch)
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return "".join(chars).strip()
+            chars.append(ch)
+        else:
+            chars.append(ch)
+
+        i += 1
+
+    return None
 
 def extract_number(text):
     if text is None:
@@ -39,16 +59,27 @@ def extract_number(text):
         return None
     return matches[-1]
 
-
 def normalize_answer(x):
     if x is None:
         return None
     x = str(x).strip()
-    x = x.replace(",", "")
-    x = x.replace("$", "")
+    replacements = {
+        r"\left": "",
+        r"\right": "",
+        r"\,": "",
+        r"\!": "",
+        r"\ ": "",
+        "$": "",
+    }
+    for old, new in replacements.items():
+        x = x.replace(old, new)
     x = x.replace(" ", "")
+    x = x.replace("\n", "")
+    x = x.replace("\t", "")
     return x
 
+print(normalize_answer(r"\left( 3, \frac{\pi}{2} \right)"))
+print(normalize_answer(r"(3, \frac{\pi}{2})"))
 
 def build_prompt(tokenizer, problem):
     messages = [
@@ -92,17 +123,20 @@ def get_problem(item):
             return item[key]
     raise KeyError(f"Cannot find problem field. Available keys: {list(item.keys())}")
 
-
 def get_gold(item):
-    for key in ["answer", "final_answer", "solution"]:
-        if key in item:
-            value = item[key]
-            boxed = extract_boxed(str(value))
-            if boxed is not None:
-                return boxed
-            return str(value).strip()
-    raise KeyError(f"Cannot find answer field. Available keys: {list(item.keys())}")
+    if "answer" in item:
+        return str(item["answer"]).strip()
 
+    if "final_answer" in item:
+        return str(item["final_answer"]).strip()
+
+    if "solution" in item:
+        boxed = extract_boxed(str(item["solution"]))
+        if boxed is not None:
+            return boxed
+        return str(item["solution"]).strip()
+
+    raise KeyError(f"Cannot find answer field. Available keys: {list(item.keys())}")
 
 def is_correct(pred, gold):
     pred_norm = normalize_answer(pred)
@@ -111,11 +145,7 @@ def is_correct(pred, gold):
     if pred_norm == gold_norm:
         return True
 
-    pred_num = extract_number(pred_norm)
-    gold_num = extract_number(gold_norm)
-
-    return pred_num is not None and pred_num == gold_num
-
+    return False
 
 def main():
     parser = argparse.ArgumentParser()
@@ -183,8 +213,10 @@ def main():
 
         print("=" * 80)
         print(f"Question {idx}/{len(ds)}")
-        print("Gold:", gold)
-        print("Pred:", pred)
+        print("Gold raw:", gold)
+        print("Gold normalized:", normalize_answer(gold))
+        print("Pred raw:", pred)
+        print("Pred normalized:", normalize_answer(pred))
         print("Correct:", ok)
         print("-" * 80)
         print(generated_text.strip())

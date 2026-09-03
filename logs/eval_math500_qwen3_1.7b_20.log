@@ -1,10 +1,14 @@
+(3,\frac{\pi}{2})
+(3,\frac{\pi}{2})
 Loading dataset: HuggingFaceH4/MATH-500 test
 Dataset size: 20
 Loading model: Qwen/Qwen3-1.7B
 ================================================================================
 Question 1/20
-Gold: \left( 3, \frac{\pi}{2} \right)
-Pred: 2
+Gold raw: \left( 3, \frac{\pi}{2} \right)
+Gold normalized: (3,\frac{\pi}{2})
+Pred raw: (3, \frac{\pi}{2})
+Pred normalized: (3,\frac{\pi}{2})
 Correct: True
 --------------------------------------------------------------------------------
 To convert the point $(0, 3)$ from rectangular to polar coordinates:
@@ -30,8 +34,10 @@ $$
 $$
 ================================================================================
 Question 2/20
-Gold: p - q
-Pred: p - q
+Gold raw: p - q
+Gold normalized: p-q
+Pred raw: p - q
+Pred normalized: p-q
 Correct: True
 --------------------------------------------------------------------------------
 We are given:
@@ -84,8 +90,10 @@ $$
 \boxed{p - q}
 ================================================================================
 Question 3/20
-Gold: \frac{14}{3}
-Pred: 3
+Gold raw: \frac{14}{3}
+Gold normalized: \frac{14}{3}
+Pred raw: \frac{14}{3}
+Pred normalized: \frac{14}{3}
 Correct: True
 --------------------------------------------------------------------------------
 We are given the function $ f(x) = \frac{3x - 2}{x - 2} $, and we are asked to find $ f(-2) + f(-1) + f(0) $.
@@ -116,8 +124,10 @@ $$
 $$
 ================================================================================
 Question 4/20
-Gold: 9
-Pred: 9
+Gold raw: 9
+Gold normalized: 9
+Pred raw: 9
+Pred normalized: 9
 Correct: True
 --------------------------------------------------------------------------------
 To find the number of positive whole-number divisors of 196, we first factorize it:
@@ -144,8 +154,10 @@ $$
 \boxed{9}
 ================================================================================
 Question 5/20
-Gold: \text{Evelyn}
-Pred: 3.6
+Gold raw: \text{Evelyn}
+Gold normalized: \text{Evelyn}
+Pred raw: 3.6
+Pred normalized: 3.6
 Correct: False
 --------------------------------------------------------------------------------
 To find the student with the greatest average speed, we need to calculate the average speed for each student using the formula:
@@ -186,8 +198,10 @@ $$
 \boxed{3.6}
 ================================================================================
 Question 6/20
-Gold: 42
-Pred: 42
+Gold raw: 42
+Gold normalized: 42
+Pred raw: 42
+Pred normalized: 42
 Correct: True
 --------------------------------------------------------------------------------
 A regular hexagon can be divided into 6 equilateral triangles. Each triangle has a perimeter of 21 inches, so each side of the triangle is $ \frac{21}{3} = 7 $ inches.
@@ -198,8 +212,10 @@ $$
 \boxed{42}
 ================================================================================
 Question 7/20
-Gold: 27
-Pred: 27
+Gold raw: 27
+Gold normalized: 27
+Pred raw: 27
+Pred normalized: 27
 Correct: True
 --------------------------------------------------------------------------------
 We are to find the smallest positive perfect cube that can be written as the sum of three consecutive integers.
@@ -229,8 +245,10 @@ $$
 \boxed{27}
 ================================================================================
 Question 8/20
-Gold: 90^\circ
-Pred: 2
+Gold raw: 90^\circ
+Gold normalized: 90^\circ
+Pred raw: 2
+Pred normalized: 2
 Correct: False
 --------------------------------------------------------------------------------
 We are given two lines in 3D space defined by the equations:
@@ -322,8 +340,10 @@ $$
 \cos \theta = \frac{-\frac{1}{2}}{
 ================================================================================
 Question 9/20
-Gold: 3\sqrt{13}
-Pred: 13
+Gold raw: 3\sqrt{13}
+Gold normalized: 3\sqrt{13}
+Pred raw: 3\sqrt{13}
+Pred normalized: 3\sqrt{13}
 Correct: True
 --------------------------------------------------------------------------------
 To find the distance between two points $(x_1, y_1)$ and $(x_2, y_2)$, use the distance formula:
@@ -360,8 +380,10 @@ $$
 $$
 ================================================================================
 Question 10/20
-Gold: 4
-Pred: 2
+Gold raw: 4
+Gold normalized: 4
+Pred raw: 2
+Pred normalized: 2
 Correct: False
 --------------------------------------------------------------------------------
 We are given the expression $2 \cdot 3 \cdot 4 \cdot 5 + 1$, and we are to find how many different values can be obtained by inserting parentheses.
@@ -428,8 +450,10 @@ $$
 \boxed{2}
 ================================================================================
 Question 11/20
-Gold: 2220
-Pred: 2220
+Gold raw: 2220
+Gold normalized: 2220
+Pred raw: 2220
+Pred normalized: 2220
 Correct: True
 --------------------------------------------------------------------------------
 We are to find the **least positive integer multiple of 30** that can be written using **only the digits 0 and 2**.
@@ -460,8 +484,10 @@ $$
 \boxed{2220}
 ================================================================================
 Question 12/20
-Gold: \frac{3}{56}
-Pred: 63
+Gold raw: \frac{3}{56}
+Gold normalized: \frac{3}{56}
+Pred raw: \frac{8}{63}
+Pred normalized: \frac{8}{63}
 Correct: False
 --------------------------------------------------------------------------------
 We are given a polynomial $ p(x) $ of degree 5 such that:
@@ -521,8 +547,10 @@ $$
 $$
 ================================================================================
 Question 13/20
-Gold: 284
-Pred: 220
+Gold raw: 284
+Gold normalized: 284
+Pred raw: 220
+Pred normalized: 220
 Correct: False
 --------------------------------------------------------------------------------
 To solve the problem, we need to find the sum of the proper divisors of 284, then find the sum of the proper divisors of that result.
@@ -566,8 +594,10 @@ $$
 \boxed{220}
 ================================================================================
 Question 14/20
-Gold: 5
-Pred: 5
+Gold raw: 5
+Gold normalized: 5
+Pred raw: 5
+Pred normalized: 5
 Correct: True
 --------------------------------------------------------------------------------
 The volume $ V $ of a cylinder is given by the formula:
@@ -610,8 +640,10 @@ $$
 \boxed{5}
 ================================================================================
 Question 15/20
-Gold: \sqrt{51}
-Pred: 6.86
+Gold raw: \sqrt{51}
+Gold normalized: \sqrt{51}
+Pred raw: 6.86
+Pred normalized: 6.86
 Correct: False
 --------------------------------------------------------------------------------
 We are given that $\sin D = 0.7$ and the diagram shows a right triangle $DEF$ with right angle at $E$.
@@ -674,8 +706,10 @@ $$
 \boxed{6.86}
 ================================================================================
 Question 16/20
-Gold: 6 - 5i
-Pred: 6 - 5i
+Gold raw: 6 - 5i
+Gold normalized: 6-5i
+Pred raw: 6 - 5i
+Pred normalized: 6-5i
 Correct: True
 --------------------------------------------------------------------------------
 We are given:
@@ -782,8 +816,10 @@ $$
 \boxed{6 - 5i}
 ================================================================================
 Question 17/20
-Gold: -50
-Pred: -50
+Gold raw: -50
+Gold normalized: -50
+Pred raw: -50
+Pred normalized: -50
 Correct: True
 --------------------------------------------------------------------------------
 We are given the alternating sum:
@@ -816,8 +852,10 @@ $$
 \boxed{-50}
 ================================================================================
 Question 18/20
-Gold: \pi
-Pred: 2
+Gold raw: \pi
+Gold normalized: \pi
+Pred raw: \frac{\pi}{2}
+Pred normalized: \frac{\pi}{2}
 Correct: False
 --------------------------------------------------------------------------------
 We are given the function:
@@ -881,8 +919,10 @@ $$
 $$
 ================================================================================
 Question 19/20
-Gold: 28
-Pred: 28
+Gold raw: 28
+Gold normalized: 28
+Pred raw: 28
+Pred normalized: 28
 Correct: True
 --------------------------------------------------------------------------------
 We are given that:
@@ -1012,8 +1052,10 @@ $$
 \boxed{28}
 ================================================================================
 Question 20/20
-Gold: 3
-Pred: 2
+Gold raw: 3
+Gold normalized: 3
+Pred raw: 2
+Pred normalized: 2
 Correct: False
 --------------------------------------------------------------------------------
 We are given the cubic equation:
