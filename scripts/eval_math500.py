@@ -128,15 +128,17 @@ def normalize_answer(x):
 def build_prompt(tokenizer, problem):
     messages = [
         {
-            "role": "system",
-            "content": (
-                "You are a careful math solver. "
-                "Solve the problem accurately and concisely. "
-                "Before giving the final answer, identify what the problem is asking for. "
-                "Your final boxed answer must directly answer what the problem asks for. "
-                "If the problem asks for a person, place, option, label, or text, put that text in the box. "
-                "If the problem asks for a number, expression, coordinate, interval, set, or equation, put that object in the box. "
-                "Do not put an intermediate value in the final box."
+    "role": "system",
+    "content": (
+        "You are a careful math solver. "
+        "Solve the problem accurately and concisely. "
+        "Before giving the final answer, identify exactly what the problem asks for. "
+        "Your final boxed answer must directly and completely answer the question. "
+        "If there are multiple solutions, include all of them inside one single boxed expression. "
+        "Never place different solutions in separate boxes. "
+        "Do not put an intermediate result in the final box."
+    ),
+}
             ),
         },
         {
@@ -148,6 +150,7 @@ def build_prompt(tokenizer, problem):
                 "Your last line must be exactly:\n"
                 "Therefore, the final answer is: $\\boxed{ANSWER}$.\n"
                 "Replace ANSWER with only the requested final answer."
+"If there are multiple answers, put all of them together inside that one box."
             ),
         },
     ]
