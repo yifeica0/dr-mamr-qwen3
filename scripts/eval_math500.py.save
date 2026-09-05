@@ -97,6 +97,18 @@ def numeric_equal(pred, gold, tolerance=1e-3):
     except Exception:
         return False
 
+def strip_single_variable_assignment_for_compare(x):
+    if x is None:
+        return None
+
+    x = normalize_answer(x)
+
+    match = re.fullmatch(r"[a-zA-Z]=(.+)", x)
+    if match:
+        return match.group(1)
+
+    return x
+
 def normalize_answer(x):
     if x is None:
         return None
@@ -106,6 +118,7 @@ def normalize_answer(x):
     x = re.sub(r"\\text\{([^{}]+)\}", r"\1", x)
     x = re.sub(r"\\mathrm\{([^{}]+)\}", r"\1", x)
     x = re.sub(r"\\operatorname\{([^{}]+)\}", r"\1", x)
+    x = re.sub(r"\\sqrt([0-9a-zA-Z]+)", r"\\sqrt{\1}", x)
 
     replacements = {
         r"\left": "",
@@ -128,15 +141,15 @@ def normalize_answer(x):
 def build_prompt(tokenizer, problem):
     messages = [
         {
-    "role": "system",
-    "content": (
-        "You are a careful math solver. "
-        "Solve the problem accurately and concisely. "
-        "Before giving the final answer, identify exactly what the problem asks for. "
-        "Your final boxed answer must directly and completely answer the question. "
-        "If there are multiple solutions, include all of them inside one single boxed expression. "
-        "Never place different solutions in separate boxes. "
-        "Do not put an intermediate result in the final box."
+            "role": "system",
+            "content": (
+                "You are a careful math solver. "
+                "Solve the problem accurately and concisely. "
+                "Before giving the final answer, identify what the problem is asking for. "
+                "Your final boxed answer must directly answer what the problem asks for. "
+                "If the problem asks for a person, place, option, label, or text, put that text in the box. "
+                "If the problem asks for a number, expression, coordinate, interval, set, or equation, put that object in the box. "
+                "Do not put an intermediate value in the final box."
             ),
         },
         {
@@ -148,7 +161,6 @@ def build_prompt(tokenizer, problem):
                 "Your last line must be exactly:\n"
                 "Therefore, the final answer is: $\\boxed{ANSWER}$.\n"
                 "Replace ANSWER with only the requested final answer."
-"If there are multiple answers, put all of them together inside that one box."
             ),
         },
     ]
@@ -220,6 +232,11 @@ def is_correct(pred, gold):
     if pred_degree_stripped == gold_degree_stripped:
         return True
 
+    pred_assign = strip_single_variable_assignment_for_compare(pred)
+    gold_assign = strip_single_variable_assignment_for_compare(gold)
+    if pred_assign == gold_assign:
+        return True
+
     return False
 
 def main():
@@ -230,7 +247,6 @@ def main():
     parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--max-new-tokens", type=int, default=2048)
     parser.add_argument("--temperature", type=float, default=0.0)
-    parser.add_argument("--index", type=int, default=None, help="Only evaluate one question using a 1-based index." )
     args = parser.parse_args()
 
     print(f"Loading dataset: {args.dataset} {args.split}")
@@ -253,23 +269,15 @@ def main():
 
     correct = 0
     total = 0
-    if args.index is not None:
-        if not 1 <= args.index <= len(ds):
-            raise ValueError(
-                f"--index must be between 1 and {len(ds)}"
-            )
 
-        eval_items = [(args.index, ds[args.index - 1])]
-    else:
-        eval_items = enumerate(ds, start=1)
-
-    for idx, item in eval_items:
+    for idx, item in enumerate(ds, start=1):
         problem = get_problem(item)
         gold = get_gold(item)
         prompt = build_prompt(tokenizer, problem)
 
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         prompt_len = inputs["input_ids"].shape[1]
+
         do_sample = args.temperature > 0.0
 
         with torch.no_grad():
