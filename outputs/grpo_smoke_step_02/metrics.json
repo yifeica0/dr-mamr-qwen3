@@ -1,0 +1,17 @@
+{
+  "status": "updated",
+  "optimizer_steps": 1,
+  "loss_before_update": 0.0,
+  "gradient_norm_before_clip": 0.3720925748348236,
+  "max_parameter_change": 9.99999338091584e-06,
+  "changed_parameter_tensors": 56,
+  "max_abs_log_ratio_before_step": 0.0,
+  "sampled_round_counts": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "multi_round_observed": false,
+  "peak_cuda_allocated_gib": 6.023128986358643
+}

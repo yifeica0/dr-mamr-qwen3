@@ -1,0 +1,36 @@
+{
+  "args": {
+    "self_test": false,
+    "model": "Qwen/Qwen3-1.7B",
+    "index": 2,
+    "group_size": 4,
+    "max_groups": 3,
+    "max_rounds": 3,
+    "meta_max_new_tokens": 512,
+    "reasoning_max_new_tokens": 2048,
+    "max_seq_length": 8192,
+    "learning_rate": 1e-05,
+    "seed": 42,
+    "output_dir": "outputs/grpo_smoke_step_01",
+    "temperature": 1.0
+  },
+  "dataset": "openai/gsm8k",
+  "split": "train",
+  "dataset_fingerprint": "c6f812ae33c9159d",
+  "model_commit": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "versions": {
+    "torch": "2.13.0+cu130",
+    "transformers": "5.16.1",
+    "peft": "0.20.0"
+  },
+  "source_sha256": {
+    "collect_group_rollouts.py": "3154db3e9a6a384c0a6d117629f932fd79ef718e6daf128cb0bbf7f4ffa815e4",
+    "rollout_rema.py": "e9fe0662e9d339fabb0c303fc721f6e798051006f7da1bde2545fa8ecb959308"
+  },
+  "kl_beta": 0.0,
+  "clip_epsilon": 0.2,
+  "loss_reduction": "mean trajectories / mean agent calls / mean completion tokens",
+  "purpose": "One-step diagnostic, not paper reproduction or accuracy evidence",
+  "sampling": "temperature=1, top_p=1, top_k=0, repetition_penalty=1",
+  "group_selection": "bounded retries on same question, skip uniform rewards or truncation"
+}
